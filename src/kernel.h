@@ -1,49 +1,39 @@
 #pragma once
 
+/************************************
+ * INCLUDES
+ ************************************/
 #include "common.h"
+#include "types.h"
 
-// for virtio-blk
-#define SECTOR_SIZE       512
-#define VIRTQ_ENTRY_NUM   16
-#define VIRTIO_DEVICE_BLK 2
-#define VIRTIO_BLK_PADDR  0x10001000
-#define VIRTIO_REG_MAGIC         0x00
-#define VIRTIO_REG_VERSION       0x04
-#define VIRTIO_REG_DEVICE_ID     0x08
-#define VIRTIO_REG_QUEUE_SEL     0x30
-#define VIRTIO_REG_QUEUE_NUM_MAX 0x34
-#define VIRTIO_REG_QUEUE_NUM     0x38
-#define VIRTIO_REG_QUEUE_ALIGN   0x3c
-#define VIRTIO_REG_QUEUE_PFN     0x40
-#define VIRTIO_REG_QUEUE_READY   0x44
-#define VIRTIO_REG_QUEUE_NOTIFY  0x50
-#define VIRTIO_REG_DEVICE_STATUS 0x70
-#define VIRTIO_REG_DEVICE_CONFIG 0x100
-#define VIRTIO_STATUS_ACK       1
-#define VIRTIO_STATUS_DRIVER    2
-#define VIRTIO_STATUS_DRIVER_OK 4
-#define VIRTIO_STATUS_FEAT_OK   8
-#define VIRTQ_DESC_F_NEXT          1
-#define VIRTQ_DESC_F_WRITE         2
-#define VIRTQ_AVAIL_F_NO_INTERRUPT 1
-#define VIRTIO_BLK_T_IN  0
-#define VIRTIO_BLK_T_OUT 1
-
-#define SCAUSE_ECALL 8
-#define PROC_EXITED   2
-#define SSTATUS_SPIE (1 << 5)
-#define USER_BASE 0x1000000
-#define SATP_SV32 (1u << 31)
-#define PAGE_V (1 << 0)
-#define PAGE_R (1 << 1)
-#define PAGE_W (1 << 2)
-#define PAGE_X (1 << 3)
-#define PAGE_U (1 << 4)
+/************************************
+ * MACROS AND DEFINES
+ ************************************/
 #define PANIC(fmt, ...) \
     do { \
         printf("PANIC: %s:%d: " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__); \
         while (1) { } \
     } while (0)
+
+#define READ_CSR(reg) \
+    ({ \
+        unsigned long __tmp; \
+        __asm__ __volatile__("csrr %0, " #reg : "=r"(__tmp)); \
+        __tmp; \
+    })
+
+#define WRITE_CSR(reg, value) \
+    ({ \
+        uint32_t __tmp = (value); \
+        __asm__ __volatile__("csrw " #reg ", %0" :: "r"(__tmp)); \
+    })
+
+/************************************
+ * TYPEDEFS
+ ************************************/
+typedef unsigned char uint8_t;
+typedef unsigned int uint32_t;
+typedef uint32_t size_t;
 
 // for virtio-blk
 struct virtq_desc {
@@ -121,19 +111,6 @@ struct trap_frame {
     uint32_t sp;
 } __attribute__((packed));
 
-#define READ_CSR(reg) \
-    ({ \
-        unsigned long __tmp; \
-        __asm__ __volatile__("csrr %0, " #reg : "=r"(__tmp)); \
-        __tmp; \
-    })
-
-#define WRITE_CSR(reg, value) \
-    ({ \
-        uint32_t __tmp = (value); \
-        __asm__ __volatile__("csrw " #reg ", %0" :: "r"(__tmp)); \
-    })
-
 struct sbiret {
     long error;
     long value;
@@ -146,3 +123,23 @@ struct process {
     uint32_t *page_table;
     uint8_t stack[8192];
 };
+
+/************************************
+ * EXPORTED VARIABLES
+ ************************************/
+extern char __bss[], __bss_end[], __stack_top[];
+extern char __free_ram[], __free_ram_end[];
+extern char __kernel_base[];
+extern char _binary_shell_bin_start[], _binary_shell_bin_size[];
+
+/************************************
+ * GLOBAL FUNCTION PROTOTYPES
+ ************************************/
+struct process procs[PROCS_MAX];
+struct process *current_proc;
+struct process *idle_proc;
+
+struct virtio_virtq *blk_request_vq;
+struct virtio_blk_req *blk_req;
+paddr_t blk_req_paddr;
+unsigned blk_capacity;

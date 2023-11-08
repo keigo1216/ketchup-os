@@ -1,29 +1,6 @@
 #include "kernel.h"
 #include "common.h"
 
-#define PROCS_MAX 8
-#define PROC_UNUSED 0
-#define PROC_RUNNABLE 1
-
-typedef unsigned char uint8_t;
-typedef unsigned int uint32_t;
-typedef uint32_t size_t;
-
-extern char __bss[], __bss_end[], __stack_top[];
-extern char __free_ram[], __free_ram_end[];
-extern char __kernel_base[];
-extern char _binary_shell_bin_start[], _binary_shell_bin_size[];
-
-struct process procs[PROCS_MAX];
-struct process *current_proc;
-struct process *idle_proc;
-
-// storage device
-struct virtio_virtq *blk_request_vq;
-struct virtio_blk_req *blk_req;
-paddr_t blk_req_paddr;
-unsigned blk_capacity;
-
 __attribute__((naked)) void user_entry(void) {
     __asm__ __volatile__(
         "csrw sepc, %[sepc]\n"
