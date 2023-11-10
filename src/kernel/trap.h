@@ -2,8 +2,8 @@
 /************************************
  * INCLUDES
  ************************************/
-#include "common.h"
-#include "types.h"
+#include "common/common.h"
+#include "common/types.h"
 #include "page.h"
 #include "sbi_call.h"
 #include "process.h"

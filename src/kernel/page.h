@@ -3,13 +3,8 @@
 /************************************
  * INCLUDES
  ************************************/
-#include "common.h"
-#include "types.h"
-#include "fs.h"
-#include "page.h"
-#include "sbi_call.h"
-#include "process.h"
-#include "trap.h"
+#include "common/common.h"
+#include "common/types.h"
 
 /************************************
  * MACROS AND DEFINES
@@ -22,9 +17,11 @@
 /************************************
  * EXPORTED VARIABLES
  ************************************/
-extern char __bss[], __bss_end[], __stack_top[];
-extern char _binary_shell_bin_start[], _binary_shell_bin_size[];
 
 /************************************
  * GLOBAL FUNCTION PROTOTYPES
  ************************************/
+extern char __kernel_base[];
+extern char __free_ram[], __free_ram_end[];
+paddr_t alloc_page(uint32_t n);
+void map_page(uint32_t *table1, uint32_t vaddr, paddr_t paddr, uint32_t flags);
