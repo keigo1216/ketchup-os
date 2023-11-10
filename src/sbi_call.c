@@ -17,3 +17,12 @@ struct sbiret sbi_call(long arg0, long arg1, long arg2, long arg3, long arg4,
                         : "memory");
     return (struct sbiret){.error = a0, .value = a1};
 }
+
+void putchar(char ch) {
+    sbi_call(ch, 0, 0, 0, 0, 0, 0, 1);
+}
+
+long getchar(void) {
+    struct sbiret ret = sbi_call(0, 0, 0, 0, 0, 0, 0, 2);
+    return ret.error;
+}
