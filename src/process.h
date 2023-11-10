@@ -5,6 +5,7 @@
  ************************************/
 #include "common.h"
 #include "types.h"
+#include "page.h"
 
 /************************************
  * MACROS AND DEFINES
@@ -13,6 +14,13 @@
 /************************************
  * TYPEDEFS
  ************************************/
+struct process {
+    int pid;
+    int state;
+    vaddr_t sp;
+    uint32_t *page_table;
+    uint8_t stack[8192];
+};
 
 /************************************
  * EXPORTED VARIABLES
@@ -21,7 +29,10 @@
 /************************************
  * GLOBAL FUNCTION PROTOTYPES
  ************************************/
-extern char __kernel_base[];
-extern char __free_ram[], __free_ram_end[];
-paddr_t alloc_page(uint32_t n);
-void map_page(uint32_t *table1, uint32_t vaddr, paddr_t paddr, uint32_t flags);
+extern struct process procs[PROCS_MAX];
+extern struct process *current_proc;
+extern struct process *idle_proc;
+__attribute__((naked)) void user_entry(void);
+__attribute__((naked)) void switch_context(uint32_t *prev_sp, uint32_t *next_sp);
+struct process *create_process(const void *image, size_t image_size);
+void yield(void);
